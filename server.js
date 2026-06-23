@@ -17,14 +17,10 @@ app.post("/ask", async (req, res) => {
     try {
         const message = req.body.message;
 
-        if (!message) {
-            return res.status(400).json({ error: "No message" });
-        }
-
         const response = await axios.post(
             "https://api.groq.com/openai/v1/chat/completions",
             {
-                model: "llama3-8b-8192",
+                model: "llama-3.1-8b-instant",
                 messages: [
                     { role: "user", content: message }
                 ]
@@ -45,7 +41,7 @@ app.post("/ask", async (req, res) => {
         console.log(err.response?.data || err.message);
 
         res.status(500).json({
-            error: "Server Error",
+            error: "Groq Error",
             details: err.response?.data || err.message
         });
     }

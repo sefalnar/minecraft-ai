@@ -7,26 +7,38 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 🔑 مفتاحك من Railway (Environment Variable)
 const API_KEY = process.env.DEEPSEEK_API_KEY;
 
+// 🧠 اختبار السيرفر
 app.get("/", (req, res) => {
     res.send("Minecraft AI Server Online");
 });
 
+// 🤖 طلب AI
 app.post("/ask", async (req, res) => {
-    try {
-        const { message } = req.body;
+    const { message } = req.body;
 
+    if (!message) {
+        return res.status(400).json({ error: "No message provided" });
+    }
+
+    try {
         const response = await axios.post(
-            "https://api.deepseek.com/chat/completions",
+            "https://api.deepseek.com/v1/chat/completions",
             {
                 model: "deepseek-chat",
                 messages: [
                     {
+                        role: "system",
+                        content: "You are an assistant inside Minecraft."
+                    },
+                    {
                         role: "user",
                         content: message
                     }
-                ]
+                ],
+                max_tokens: 500
             },
             {
                 headers: {
@@ -36,15 +48,16 @@ app.post("/ask", async (req, res) => {
             }
         );
 
-        res.json({
-            reply: response.data.choices[0].message.content
-        });
+        const reply = response.data.choices[0].message.content;
 
-    } catch (error) {
-        console.error(error.response?.data || error.message);
+        res.json({ reply });
+
+    } catch (err) {
+        console.log("DeepSeek Error:", err.response?.data || err.message);
 
         res.status(500).json({
-            error: "DeepSeek Error"
+            error: "DeepSeek Error",
+            details: err.response?.data || err.message
         });
     }
 });
@@ -52,5 +65,5 @@ app.post("/ask", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log("Server running on port " + PORT);
 });

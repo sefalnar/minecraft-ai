@@ -7,38 +7,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔑 مفتاحك من Railway (Environment Variable)
-const API_KEY = process.env.DEEPSEEK_API_KEY;
+const API_KEY = process.env.GROQ_API_KEY;
 
-// 🧠 اختبار السيرفر
 app.get("/", (req, res) => {
-    res.send("Minecraft AI Server Online");
+    res.send("Minecraft AI Groq Server");
 });
 
-// 🤖 طلب AI
 app.post("/ask", async (req, res) => {
-    const { message } = req.body;
-
-    if (!message) {
-        return res.status(400).json({ error: "No message provided" });
-    }
+    const message = req.body.message;
 
     try {
         const response = await axios.post(
-            "https://api.deepseek.com/v1/chat/completions",
+            "https://api.groq.com/openai/v1/chat/completions",
             {
-                model: "deepseek-chat",
+                model: "llama3-8b-8192",
                 messages: [
-                    {
-                        role: "system",
-                        content: "You are an assistant inside Minecraft."
-                    },
                     {
                         role: "user",
                         content: message
                     }
-                ],
-                max_tokens: 500
+                ]
             },
             {
                 headers: {
@@ -53,17 +41,12 @@ app.post("/ask", async (req, res) => {
         res.json({ reply });
 
     } catch (err) {
-        console.log("DeepSeek Error:", err.response?.data || err.message);
-
         res.status(500).json({
-            error: "DeepSeek Error",
+            error: "Groq Error",
             details: err.response?.data || err.message
         });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
-});
+app.listen(PORT, () => console.log("Server running"));
